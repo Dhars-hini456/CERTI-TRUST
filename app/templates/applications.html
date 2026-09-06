@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}Applications{% endblock %}
+{% block content %}
+<div class="container py-5 text-center">
+  <div class="spinner-border text-primary spinner-ct" role="status"></div>
+  <p class="mt-3 text-muted">Redirecting to your applications...</p>
+</div>
+{% endblock %}
+{% block extra_scripts %}
+<script>window.location.href = "{{ url_for('pages.dashboard_redirect') }}";</script>
+{% endblock %}

@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+{% block title %}Officer Dashboard{% endblock %}
+{% block content %}
+<div class="container-fluid px-4 py-4">
+  <div class="mb-4">
+    <h3 class="ct-section-title mb-0">Officer Control Center</h3>
+    <p class="ct-section-sub mb-0">Review applications, issue certificates, and monitor fraud alerts in real time.</p>
+  </div>
+
+  <div class="row g-3 mb-4" id="statCards">
+    <div class="col-6 col-md-3"><div class="ct-stat-card bg-grad-navy"><span class="icon">📄</span><h3 id="statTotal">-</h3><span class="label">Total Certificates</span></div></div>
+    <div class="col-6 col-md-3"><div class="ct-stat-card bg-grad-teal"><span class="icon">✅</span><h3 id="statVerified">-</h3><span class="label">Active Certificates</span></div></div>
+    <div class="col-6 col-md-3"><div class="ct-stat-card bg-grad-amber"><span class="icon">⏳</span><h3 id="statPending">-</h3><span class="label">Pending Applications</span></div></div>
+    <div class="col-6 col-md-3"><div class="ct-stat-card bg-grad-red"><span class="icon">🚨</span><h3 id="statSuspicious">-</h3><span class="label">Open Fraud Alerts</span></div></div>
+    <div class="col-6 col-md-3"><div class="ct-stat-card bg-grad-purple"><span class="icon">♻️</span><h3 id="statReissued">-</h3><span class="label">Reissued</span></div></div>
+    <div class="col-6 col-md-3"><div class="ct-stat-card bg-grad-navy"><span class="icon">🚫</span><h3 id="statRevoked">-</h3><span class="label">Revoked</span></div></div>
+    <div class="col-6 col-md-3"><div class="ct-stat-card bg-grad-amber"><span class="icon">📆</span><h3 id="statExpired">-</h3><span class="label">Expired</span></div></div>
+    <div class="col-6 col-md-3"><div class="ct-stat-card bg-grad-teal"><span class="icon">🔎</span><h3 id="statVerifications">-</h3><span class="label">Verification Requests</span></div></div>
+  </div>
+
+  <div class="row g-3 mb-4">
+    <div class="col-lg-6"><div class="ct-card"><div class="card-body"><h6 class="fw-bold mb-3">Certificates Issued by Month</h6><canvas id="chartByMonth" height="180"></canvas></div></div></div>
+    <div class="col-lg-6"><div class="ct-card"><div class="card-body"><h6 class="fw-bold mb-3">Verification Results</h6><canvas id="chartVerificationResults" height="180"></canvas></div></div></div>
+    <div class="col-lg-6"><div class="ct-card"><div class="card-body"><h6 class="fw-bold mb-3">Certificate Types</h6><canvas id="chartCertTypes" height="180"></canvas></div></div></div>
+    <div class="col-lg-6"><div class="ct-card"><div class="card-body"><h6 class="fw-bold mb-3">Suspicious Verification Trend (7 days)</h6><canvas id="chartSuspiciousTrend" height="180"></canvas></div></div></div>
+  </div>
+
+  <ul class="nav nav-pills mb-3" id="officerTabs">
+    <li class="nav-item"><button class="nav-link active" data-tab="applications">Applications</button></li>
+    <li class="nav-item"><button class="nav-link" data-tab="certificates">Certificates</button></li>
+  </ul>
+
+  <div id="tab-applications">
+    <div class="ct-toolbar">
+      <input type="search" id="appSearchInput" class="form-control" placeholder="🔍 Search by number, citizen, type or status...">
+      <button class="btn-export ms-auto" onclick="exportApplicationsCsv()">⬇ Export CSV</button>
+    </div>
+    <div class="ct-card"><div class="card-body">
+      <div class="table-responsive">
+        <table class="table ct-table align-middle">
+          <thead><tr><th>Application #</th><th>Citizen</th><th>Type</th><th>Status</th><th>Submitted</th><th>Actions</th></tr></thead>
+          <tbody id="officerApplicationsBody"><tr><td colspan="6" class="text-center py-4">Loading...</td></tr></tbody>
+        </table>
+      </div>
+      <div class="ct-pagination" id="appPagination"></div>
+    </div></div>
+  </div>
+
+  <div id="tab-certificates" class="d-none">
+    <div class="ct-toolbar">
+      <input type="search" id="certSearchInput" class="form-control" placeholder="🔍 Search by number, applicant, type or status...">
+      <button class="btn-export ms-auto" onclick="exportCertificatesCsv()">⬇ Export CSV</button>
+    </div>
+    <div class="ct-card"><div class="card-body">
+      <div class="table-responsive">
+        <table class="table ct-table align-middle">
+          <thead><tr><th>Certificate #</th><th>Applicant</th><th>Type</th><th>Status</th><th>Version</th><th>Actions</th></tr></thead>
+          <tbody id="officerCertificatesBody"><tr><td colspan="6" class="text-center py-4">Loading...</td></tr></tbody>
+        </table>
+      </div>
+      <div class="ct-pagination" id="certPagination"></div>
+    </div></div>
+  </div>
+</div>
+
+<!-- Reject reason modal -->
+<div class="modal fade" id="rejectModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header"><h5 class="modal-title fw-bold">Reject Application</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body">
+        <label class="form-label">Reason for rejection</label>
+        <textarea class="form-control" id="rejectReason" rows="3" placeholder="e.g. Uploaded documents are incomplete"></textarea>
+        <input type="hidden" id="rejectApplicationId">
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-danger" onclick="confirmReject()">Reject</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Reissue reason modal -->
+<div class="modal fade" id="reissueModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header"><h5 class="modal-title fw-bold">Official Reissue</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body">
+        <label class="form-label">Reason for reissue</label>
+        <textarea class="form-control" id="reissueReason" rows="3" placeholder="e.g. Original certificate lost by applicant"></textarea>
+        <input type="hidden" id="reissueCertificateId">
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-ct-primary" onclick="confirmReissue()">Create Official Reissue</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Revoke reason modal -->
+<div class="modal fade" id="revokeModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header"><h5 class="modal-title fw-bold">Revoke Certificate</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body">
+        <label class="form-label">Reason for revocation</label>
+        <textarea class="form-control" id="revokeReason" rows="3" placeholder="e.g. Fraudulent supporting documents discovered"></textarea>
+        <input type="hidden" id="revokeCertificateId">
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-danger" onclick="confirmRevoke()">Revoke</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- QR Preview modal -->
+<div class="modal fade" id="qrPreviewModal" tabindex="-1">
+  <div class="modal-dialog modal-sm modal-dialog-centered">
+    <div class="modal-content text-center">
+      <div class="modal-header"><h6 class="modal-title fw-bold" id="qrPreviewLabel">Certificate QR</h6><button class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body">
+        <div class="qr-preview-box"><img id="qrPreviewImg" src="" alt="QR Code" style="width:200px;height:200px;"></div>
+        <p class="small text-muted mt-3 mb-0">Scan with any QR reader, or open the link below directly.</p>
+        <a id="qrPreviewLink" href="#" target="_blank" class="btn btn-ct-primary btn-sm mt-2">Open Verification Page</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/officer.js') }}"></script>
+{% endblock %}

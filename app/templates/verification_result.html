@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Verification Result{% endblock %}
+{% block content %}
+{% set good = ['VERIFIED_ORIGINAL', 'VERIFIED_OFFICIAL_REISSUE'] %}
+{% set bad = ['TAMPERED_MODIFIED', 'FORGED_INVALID'] %}
+{% set warn = ['EXPIRED', 'REVOKED', 'PENDING_VERIFICATION'] %}
+{% set r = result.result %}
+{% if r in good %}{% set css_class = 'status-good' %}{% set icon = '✅' %}
+{% elif r in bad %}{% set css_class = 'status-bad' %}{% set icon = '⚠️' %}
+{% elif r in warn %}{% set css_class = 'status-warn' %}{% set icon = '⏱️' %}
+{% else %}{% set css_class = 'status-neutral' %}{% set icon = '❓' %}
+{% endif %}
+
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-7">
+      <div class="result-hero {{ css_class }} mb-4">
+        <div class="status-icon">{{ icon }}</div>
+        <h2 class="fw-bold mb-1">{{ result.label }}</h2>
+        <p class="mb-0">{{ result.reason }}</p>
+      </div>
+
+      {% if result.certificate %}
+      {% set c = result.certificate %}
+      <div class="ct-card mb-4"><div class="card-body p-4">
+        <h5 class="fw-bold mb-3">Certificate Details</h5>
+        <div class="row g-3">
+          <div class="col-md-6"><p class="small text-muted mb-1">Certificate Number</p><p class="fw-bold">{{ c.certificate_number }}</p></div>
+          <div class="col-md-6"><p class="small text-muted mb-1">Certificate Type</p><p class="fw-bold">{{ c.certificate_type.name if c.certificate_type else '-' }}</p></div>
+          <div class="col-md-6"><p class="small text-muted mb-1">Applicant</p><p class="fw-bold">{{ c.applicant_name }}</p></div>
+          <div class="col-md-6"><p class="small text-muted mb-1">Issued By</p><p class="fw-bold">{{ c.issued_by }}</p></div>
+          <div class="col-md-6"><p class="small text-muted mb-1">Issue Date</p><p class="fw-bold">{{ c.issue_date }}</p></div>
+          <div class="col-md-6"><p class="small text-muted mb-1">Expiry Date</p><p class="fw-bold">{{ c.expiry_date or 'N/A' }}</p></div>
+          <div class="col-md-6"><p class="small text-muted mb-1">Version</p><p class="fw-bold">v{{ c.version_number }}</p></div>
+          <div class="col-md-6"><p class="small text-muted mb-1">Status</p><p class="fw-bold">{{ c.status }}</p></div>
+          {% if result.hash_valid is not none %}
+          <div class="col-md-6"><p class="small text-muted mb-1">Integrity Check</p><p class="fw-bold {{ 'text-success' if result.hash_valid else 'text-danger' }}">{{ '✓ PASSED' if result.hash_valid else '✗ FAILED' }}</p></div>
+          {% endif %}
+          {% if result.signature_valid is not none %}
+          <div class="col-md-6"><p class="small text-muted mb-1">Digital Signature</p><p class="fw-bold {{ 'text-success' if result.signature_valid else 'text-danger' }}">{{ '✓ VALID' if result.signature_valid else '✗ INVALID' }}</p></div>
+          {% endif %}
+        </div>
+        <p class="small text-muted mt-3 mb-0">Verification Time: {{ moment if moment else '' }}</p>
+      </div></div>
+      {% endif %}
+
+      <div class="text-center">
+        <a href="{{ url_for('verify.verify_landing') }}" class="btn btn-ct-outline-secondary btn-outline-secondary">Verify Another Certificate</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

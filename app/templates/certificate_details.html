@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}Certificate Details{% endblock %}
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="ct-card"><div class="card-body p-4">
+        <div class="d-flex justify-content-between align-items-start mb-4">
+          <div>
+            <h4 class="fw-bold mb-1">{{ certificate.certificate_type.name if certificate.certificate_type else 'Certificate' }}</h4>
+            <p class="text-muted mb-0">{{ certificate.certificate_number }}</p>
+          </div>
+          <span class="badge-status {{ 'badge-active' if certificate.status == 'ACTIVE' else 'badge-revoked' if certificate.status == 'REVOKED' else 'badge-expired' if certificate.status == 'EXPIRED' else 'badge-verified-reissue' }}">{{ certificate.status }}</span>
+        </div>
+        <div class="row g-3">
+          <div class="col-md-6"><p class="small text-muted mb-1">Applicant Name</p><p class="fw-bold">{{ certificate.applicant_name }}</p></div>
+          <div class="col-md-6"><p class="small text-muted mb-1">Applicant ID</p><p class="fw-bold">{{ certificate.applicant_id or '-' }}</p></div>
+          <div class="col-md-6"><p class="small text-muted mb-1">Issue Date</p><p class="fw-bold">{{ certificate.issue_date }}</p></div>
+          <div class="col-md-6"><p class="small text-muted mb-1">Expiry Date</p><p class="fw-bold">{{ certificate.expiry_date or 'N/A' }}</p></div>
+          <div class="col-md-6"><p class="small text-muted mb-1">Issued By</p><p class="fw-bold">{{ certificate.issued_by }}</p></div>
+          <div class="col-md-6"><p class="small text-muted mb-1">Version</p><p class="fw-bold">v{{ certificate.version_number }}</p></div>
+        </div>
+        <hr>
+        <p class="small text-muted mb-1">Document Hash (SHA-256)</p>
+        <div class="hash-chip mb-3">{{ certificate.document_hash }}</div>
+        <div class="d-flex gap-2 flex-wrap">
+          <a class="btn btn-ct-primary" href="{{ url_for('officer.download_certificate', certificate_id=certificate.id) }}">Download PDF</a>
+          <a class="btn btn-outline-primary" href="{{ url_for('verify.verify_by_token', token=certificate.qr_token) }}">View Verification Page</a>
+        </div>
+      </div></div>
+    </div>
+  </div>
+</div>
+{% endblock %}

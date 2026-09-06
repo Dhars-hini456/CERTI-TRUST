@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard{% endblock %}
+{% block content %}
+<div class="container-fluid px-4 py-4">
+  <div class="mb-4">
+    <h3 class="ct-section-title mb-0">System Administration</h3>
+    <p class="ct-section-sub mb-0">Manage users, departments, certificate types and view system-wide analytics.</p>
+  </div>
+
+  <div class="row g-3 mb-4" id="statCards">
+    <div class="col-6 col-md-3"><div class="ct-stat-card bg-grad-navy"><span class="icon">📄</span><h3 id="statTotal">-</h3><span class="label">Total Certificates</span></div></div>
+    <div class="col-6 col-md-3"><div class="ct-stat-card bg-grad-teal"><span class="icon">✅</span><h3 id="statVerified">-</h3><span class="label">Active Certificates</span></div></div>
+    <div class="col-6 col-md-3"><div class="ct-stat-card bg-grad-amber"><span class="icon">⏳</span><h3 id="statPending">-</h3><span class="label">Pending Applications</span></div></div>
+    <div class="col-6 col-md-3"><div class="ct-stat-card bg-grad-red"><span class="icon">🚨</span><h3 id="statSuspicious">-</h3><span class="label">Open Fraud Alerts</span></div></div>
+  </div>
+
+  <ul class="nav nav-pills mb-3" id="adminTabs">
+    <li class="nav-item"><button class="nav-link active" data-tab="users">Users</button></li>
+    <li class="nav-item"><button class="nav-link" data-tab="cert-types">Certificate Types</button></li>
+    <li class="nav-item"><button class="nav-link" data-tab="departments">Departments</button></li>
+    <li class="nav-item"><button class="nav-link" data-tab="certificates">All Certificates</button></li>
+  </ul>
+
+  <div id="tab-users">
+    <div class="ct-toolbar">
+      <input type="search" id="userSearchInput" class="form-control" placeholder="🔍 Search by name, email or role...">
+      <button class="btn-export" onclick="exportUsersCsv()">⬇ Export CSV</button>
+      <button class="btn btn-ct-primary btn-sm ms-auto" data-bs-toggle="modal" data-bs-target="#userModal">+ Add User</button>
+    </div>
+    <div class="ct-card"><div class="card-body">
+      <div class="table-responsive"><table class="table ct-table align-middle">
+        <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Department</th><th>Status</th><th></th></tr></thead>
+        <tbody id="usersBody"><tr><td colspan="6" class="text-center py-4">Loading...</td></tr></tbody>
+      </table></div>
+      <div class="ct-pagination" id="userPagination"></div>
+    </div></div>
+  </div>
+
+  <div id="tab-cert-types" class="d-none">
+    <div class="d-flex justify-content-end mb-2">
+      <button class="btn btn-ct-primary btn-sm" data-bs-toggle="modal" data-bs-target="#certTypeModal">+ Add Certificate Type</button>
+    </div>
+    <div class="ct-card"><div class="card-body">
+      <div class="table-responsive"><table class="table ct-table align-middle">
+        <thead><tr><th>Name</th><th>Code</th><th>Department</th><th>Validity (days)</th><th>Status</th></tr></thead>
+        <tbody id="certTypesBody"><tr><td colspan="5" class="text-center py-4">Loading...</td></tr></tbody>
+      </table></div>
+    </div></div>
+  </div>
+
+  <div id="tab-departments" class="d-none">
+    <div class="d-flex justify-content-end mb-2">
+      <button class="btn btn-ct-primary btn-sm" data-bs-toggle="modal" data-bs-target="#deptModal">+ Add Department</button>
+    </div>
+    <div class="ct-card"><div class="card-body">
+      <div class="table-responsive"><table class="table ct-table align-middle">
+        <thead><tr><th>Name</th><th>Code</th></tr></thead>
+        <tbody id="departmentsBody"><tr><td colspan="2" class="text-center py-4">Loading...</td></tr></tbody>
+      </table></div>
+    </div></div>
+  </div>
+
+  <div id="tab-certificates" class="d-none">
+    <div class="ct-toolbar">
+      <input type="search" id="certAdminSearchInput" class="form-control" placeholder="🔍 Search by number, applicant or status...">
+      <button class="btn-export ms-auto" onclick="exportAllCertificatesCsv()">⬇ Export CSV</button>
+    </div>
+    <div class="ct-card"><div class="card-body">
+      <div class="table-responsive"><table class="table ct-table align-middle">
+        <thead><tr><th>Certificate #</th><th>Applicant</th><th>Status</th><th>Version</th></tr></thead>
+        <tbody id="allCertificatesBody"><tr><td colspan="4" class="text-center py-4">Loading...</td></tr></tbody>
+      </table></div>
+      <div class="ct-pagination" id="adminCertPagination"></div>
+    </div></div>
+  </div>
+</div>
+
+<!-- Add user modal -->
+<div class="modal fade" id="userModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
+  <div class="modal-header"><h5 class="modal-title fw-bold">Add User</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+  <form id="userForm"><div class="modal-body">
+    <div class="mb-2"><label class="form-label">Full Name</label><input class="form-control" id="u_full_name" required></div>
+    <div class="mb-2"><label class="form-label">Email</label><input type="email" class="form-control" id="u_email" required></div>
+    <div class="mb-2"><label class="form-label">Password</label><input type="password" class="form-control" id="u_password" minlength="6" required></div>
+    <div class="mb-2"><label class="form-label">Role</label>
+      <select class="form-select" id="u_role">
+        <option value="officer">Officer</option>
+        <option value="verifier">Verifier</option>
+        <option value="admin">Admin</option>
+        <option value="citizen">Citizen</option>
+      </select>
+    </div>
+    <div class="mb-2"><label class="form-label">Department</label><input class="form-control" id="u_department" placeholder="e.g. Revenue Department"></div>
+  </div>
+  <div class="modal-footer"><button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button><button class="btn btn-ct-primary">Create</button></div>
+  </form>
+</div></div></div>
+
+<!-- Add cert type modal -->
+<div class="modal fade" id="certTypeModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
+  <div class="modal-header"><h5 class="modal-title fw-bold">Add Certificate Type</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+  <form id="certTypeForm"><div class="modal-body">
+    <div class="mb-2"><label class="form-label">Name</label><input class="form-control" id="ct_name" required placeholder="e.g. Domicile Certificate"></div>
+    <div class="mb-2"><label class="form-label">Code</label><input class="form-control" id="ct_code" required placeholder="e.g. DOM"></div>
+    <div class="mb-2"><label class="form-label">Department</label><input class="form-control" id="ct_department" placeholder="e.g. Revenue Department"></div>
+    <div class="mb-2"><label class="form-label">Validity (days)</label><input type="number" class="form-control" id="ct_validity" value="365"></div>
+  </div>
+  <div class="modal-footer"><button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button><button class="btn btn-ct-primary">Create</button></div>
+  </form>
+</div></div></div>
+
+<!-- Add department modal -->
+<div class="modal fade" id="deptModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
+  <div class="modal-header"><h5 class="modal-title fw-bold">Add Department</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+  <form id="deptForm"><div class="modal-body">
+    <div class="mb-2"><label class="form-label">Name</label><input class="form-control" id="d_name" required></div>
+    <div class="mb-2"><label class="form-label">Code</label><input class="form-control" id="d_code" required></div>
+  </div>
+  <div class="modal-footer"><button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button><button class="btn btn-ct-primary">Create</button></div>
+  </form>
+</div></div></div>
+
+{% endblock %}
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+{% endblock %}

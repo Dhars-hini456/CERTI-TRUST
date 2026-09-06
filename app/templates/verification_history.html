@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% block title %}Verification History{% endblock %}
+{% block content %}
+<div class="container py-4">
+  <div class="mb-4">
+    <h3 class="ct-section-title mb-0">Verification History &amp; Audit Trail</h3>
+    <p class="ct-section-sub mb-0">Every verification attempt — QR scan, certificate number, or token lookup — is logged here.</p>
+  </div>
+  <div class="ct-toolbar">
+    <input type="search" id="logSearchInput" class="form-control" placeholder="🔍 Search by certificate, verifier, method or result...">
+    <button class="btn-export ms-auto" onclick="exportLogsCsv()">⬇ Export CSV</button>
+  </div>
+  <div class="ct-card"><div class="card-body">
+    <div class="table-responsive">
+      <table class="table ct-table align-middle">
+        <thead><tr><th>Certificate #</th><th>Verifier</th><th>Method</th><th>Result</th><th>IP Address</th><th>Timestamp</th></tr></thead>
+        <tbody id="logsBody"><tr><td colspan="6" class="text-center py-4">Loading...</td></tr></tbody>
+      </table>
+    </div>
+    <div class="ct-pagination" id="logPagination"></div>
+  </div></div>
+</div>
+{% endblock %}
+{% block extra_scripts %}
+<script>
+function statusBadge(status){ return `<span class="badge-status ${ctStatusBadgeClass(status)}">${status.replace(/_/g," ")}</span>`; }
+
+let allLogs = [];
+let logPage = 1;
+const LOG_PAGE_SIZE = 10;
+
+function renderLogsTable() {
+  const tbody = document.getElementById("logsBody");
+  const query = (document.getElementById("logSearchInput")?.value || "").toLowerCase();
+  const filtered = allLogs.filter(l =>
+    (l.certificate_number || "").toLowerCase().includes(query) ||
+    (l.verifier || "").toLowerCase().includes(query) ||
+    (l.method || "").toLowerCase().includes(query) ||
+    (l.result || "").toLowerCase().includes(query)
+  );
+  if (filtered.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="6">${ctEmptyState("No matching verification attempts found.", "🕓")}</td></tr>`;
+    ctRenderPagination(document.getElementById("logPagination"), 0, 1, LOG_PAGE_SIZE, () => {});
+    return;
+  }
+  const totalPages = Math.max(1, Math.ceil(filtered.length / LOG_PAGE_SIZE));
+  if (logPage > totalPages) logPage = totalPages;
+  const pageItems = ctPaginate(filtered, logPage, LOG_PAGE_SIZE);
+
+  tbody.innerHTML = pageItems.map(l => `<tr>
+    <td class="fw-semibold">${l.certificate_number}</td>
+    <td>${l.verifier}</td>
+    <td>${l.method}</td>
+    <td>${statusBadge(l.result)}</td>
+    <td>${l.ip_address || '-'}</td>
+    <td>${l.timestamp}</td>
+  </tr>`).join("");
+
+  ctRenderPagination(document.getElementById("logPagination"), filtered.length, logPage, LOG_PAGE_SIZE, (p) => {
+    logPage = p;
+    renderLogsTable();
+  });
+}
+
+async function loadLogs() {
+  const tbody = document.getElementById("logsBody");
+  try {
+    allLogs = await ctFetch("/api/verification-logs");
+    logPage = 1;
+    renderLogsTable();
+  } catch (err) {
+    tbody.innerHTML = `<tr><td colspan="6" class="text-danger text-center">${err.message}</td></tr>`;
+  }
+}
+
+function exportLogsCsv() {
+  ctExportCsv("certitrust_verification_logs.csv", allLogs, [
+    { key: "certificate_number", label: "Certificate Number" },
+    { key: "verifier", label: "Verifier" },
+    { key: "method", label: "Method" },
+    { key: "result", label: "Result" },
+    { key: "ip_address", label: "IP Address" },
+    { key: "timestamp", label: "Timestamp" },
+  ]);
+}
+
+document.getElementById("logSearchInput").addEventListener("input", () => {
+  logPage = 1;
+  renderLogsTable();
+});
+
+loadLogs();
+</script>
+{% endblock %}

@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% block title %}Fraud Alerts{% endblock %}
+{% block content %}
+<div class="container py-4">
+  <div class="mb-4">
+    <h3 class="ct-section-title mb-0">Suspicious Certificate Alerts</h3>
+    <p class="ct-section-sub mb-0">Automatically flagged by the fraud detection engine — hash mismatches, invalid signatures, and unknown certificates.</p>
+  </div>
+  <div class="ct-toolbar">
+    <input type="search" id="alertSearchInput" class="form-control" placeholder="🔍 Search by type or reason...">
+    <select id="severityFilter" class="form-select" style="max-width:180px;">
+      <option value="">All Severities</option>
+      <option value="LOW">Low</option>
+      <option value="MEDIUM">Medium</option>
+      <option value="HIGH">High</option>
+      <option value="CRITICAL">Critical</option>
+    </select>
+    <button class="btn-export ms-auto" onclick="exportAlertsCsv()">⬇ Export CSV</button>
+  </div>
+  <div class="ct-card"><div class="card-body">
+    <div class="table-responsive">
+      <table class="table ct-table align-middle">
+        <thead><tr><th>Alert Type</th><th>Severity</th><th>Reason</th><th>Detected At</th><th>Status</th><th></th></tr></thead>
+        <tbody id="alertsBody"><tr><td colspan="6" class="text-center py-4">Loading...</td></tr></tbody>
+      </table>
+    </div>
+    <div class="ct-pagination" id="alertPagination"></div>
+  </div></div>
+</div>
+{% endblock %}
+{% block extra_scripts %}
+<script>
+function severityBadge(sev) {
+  const map = { LOW: "badge-active", MEDIUM: "badge-pending", HIGH: "badge-expired", CRITICAL: "badge-tampered" };
+  return `<span class="badge-status ${map[sev] || 'badge-not-found'}">${sev}</span>`;
+}
+
+let allAlerts = [];
+let alertPage = 1;
+const ALERT_PAGE_SIZE = 10;
+
+function renderAlertsTable() {
+  const tbody = document.getElementById("alertsBody");
+  const query = (document.getElementById("alertSearchInput")?.value || "").toLowerCase();
+  const severity = document.getElementById("severityFilter")?.value || "";
+  const filtered = allAlerts.filter(a =>
+    (a.alert_type.toLowerCase().includes(query) || (a.reason || "").toLowerCase().includes(query)) &&
+    (severity === "" || a.severity === severity)
+  );
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="6">${ctEmptyState("No fraud alerts match your filters.", "🛡️")}</td></tr>`;
+    ctRenderPagination(document.getElementById("alertPagination"), 0, 1, ALERT_PAGE_SIZE, () => {});
+    return;
+  }
+  const totalPages = Math.max(1, Math.ceil(filtered.length / ALERT_PAGE_SIZE));
+  if (alertPage > totalPages) alertPage = totalPages;
+  const pageItems = ctPaginate(filtered, alertPage, ALERT_PAGE_SIZE);
+
+  tbody.innerHTML = pageItems.map(a => `<tr>
+    <td class="fw-semibold">${a.alert_type.replace(/_/g," ")}</td>
+    <td>${severityBadge(a.severity)}</td>
+    <td>${a.reason}</td>
+    <td>${a.detected_at}</td>
+    <td>${a.resolved ? '<span class="badge-status badge-active">RESOLVED</span>' : '<span class="badge-status badge-pending">OPEN</span>'}</td>
+    <td>${a.resolved ? '' : `<button class="btn btn-sm btn-outline-secondary" onclick="resolveAlert(${a.id})">Mark Resolved</button>`}</td>
+  </tr>`).join("");
+
+  ctRenderPagination(document.getElementById("alertPagination"), filtered.length, alertPage, ALERT_PAGE_SIZE, (p) => {
+    alertPage = p;
+    renderAlertsTable();
+  });
+}
+
+async function loadAlerts() {
+  const tbody = document.getElementById("alertsBody");
+  try {
+    allAlerts = await ctFetch("/api/admin/fraud-alerts");
+    alertPage = 1;
+    renderAlertsTable();
+  } catch (err) {
+    tbody.innerHTML = `<tr><td colspan="6" class="text-danger text-center">${err.message}</td></tr>`;
+  }
+}
+
+async function resolveAlert(id) {
+  try {
+    await ctFetch(`/api/admin/fraud-alerts/${id}/resolve`, { method: "POST" });
+    ctToast("Alert marked as resolved.", "success");
+    loadAlerts();
+  } catch (err) {
+    ctToast(err.message, "danger");
+  }
+}
+
+function exportAlertsCsv() {
+  ctExportCsv("certitrust_fraud_alerts.csv", allAlerts, [
+    { key: "alert_type", label: "Alert Type" },
+    { key: "severity", label: "Severity" },
+    { key: "reason", label: "Reason" },
+    { key: "detected_at", label: "Detected At" },
+    { key: "resolved", label: "Resolved" },
+  ]);
+}
+
+document.getElementById("alertSearchInput").addEventListener("input", () => { alertPage = 1; renderAlertsTable(); });
+document.getElementById("severityFilter").addEventListener("change", () => { alertPage = 1; renderAlertsTable(); });
+
+loadAlerts();
+</script>
+{% endblock %}

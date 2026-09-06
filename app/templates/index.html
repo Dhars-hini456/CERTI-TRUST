@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+{% block content %}
+
+<section class="ct-hero">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-lg-7">
+        <span class="ct-hero-badge">🏛️ Digital Public Services Platform &middot; Demo</span>
+        <h1>Verify any government certificate in seconds — not in weeks.</h1>
+        <p class="lead mt-3">CertiTrust lets citizens apply for certificates, officers issue and manage them securely, and anyone — a college, bank or employer — instantly confirm whether a certificate is genuine, officially reissued, tampered, expired or revoked, just by scanning a QR code.</p>
+        <div class="mt-4 d-flex gap-3 flex-wrap">
+          <a href="{{ url_for('verify.verify_landing') }}" class="btn btn-ct-primary btn-lg">🔍 Verify a Certificate</a>
+          <a href="{{ url_for('pages.register_page') }}" class="btn btn-ct-outline btn-lg">Get Started</a>
+        </div>
+        <div class="mt-4 demo-tag">⚠️ Hackathon demo — all data is fictional</div>
+        <div class="ct-hero-stats">
+          <div class="stat"><b id="statTotalCerts">0</b><span>Certificates Issued</span></div>
+          <div class="stat"><b id="statTotalVerifications">0</b><span>Verifications Run</span></div>
+          <div class="stat"><b id="statCertTypes">0</b><span>Certificate Types</span></div>
+          <div class="stat"><b id="statDepartments">0</b><span>Departments</span></div>
+        </div>
+      </div>
+      <div class="col-lg-5 text-center mt-5 mt-lg-0">
+        <div class="ct-card p-4 mx-auto" style="max-width:340px; background:rgba(255,255,255,.97);">
+          <div class="card-body text-start">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <strong class="text-dark">Verification Result</strong>
+              <span class="badge badge-verified-original">VERIFIED</span>
+            </div>
+            <p class="small text-muted mb-1">Certificate Number</p>
+            <p class="fw-bold mb-2">INC-2026-000123</p>
+            <p class="small text-muted mb-1">Integrity Check</p>
+            <p class="fw-bold text-success mb-2">✓ PASSED</p>
+            <p class="small text-muted mb-1">Digital Signature</p>
+            <p class="fw-bold text-success mb-0">✓ VALID</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="container py-5">
+  <div class="text-center mb-5">
+    <h2 class="ct-section-title">One platform, every certificate type</h2>
+    <p class="ct-section-sub">Configurable certificate types, four role-based portals, and a full verification & fraud-detection engine.</p>
+  </div>
+  <div class="row g-4">
+    <div class="col-md-4">
+      <div class="ct-card h-100"><div class="card-body">
+        <div class="ct-feature-icon">📝</div>
+        <h5 class="fw-bold">Apply &amp; Track</h5>
+        <p class="text-muted mb-0">Citizens apply online, upload documents, and track every application stage through to certificate issuance.</p>
+      </div></div>
+    </div>
+    <div class="col-md-4">
+      <div class="ct-card h-100"><div class="card-body">
+        <div class="ct-feature-icon">🔏</div>
+        <h5 class="fw-bold">Tamper-Proof Issuance</h5>
+        <p class="text-muted mb-0">Every certificate is SHA-256 hashed and digitally signed at issuance, then bound to a secure QR verification token.</p>
+      </div></div>
+    </div>
+    <div class="col-md-4">
+      <div class="ct-card h-100"><div class="card-body">
+        <div class="ct-feature-icon">♻️</div>
+        <h5 class="fw-bold">Genuine Reissues, Not Fakes</h5>
+        <p class="text-muted mb-0">Official duplicates are versioned and clearly labelled "VERIFIED – OFFICIAL REISSUE" instead of being flagged as fraud.</p>
+      </div></div>
+    </div>
+    <div class="col-md-4">
+      <div class="ct-card h-100"><div class="card-body">
+        <div class="ct-feature-icon">📷</div>
+        <h5 class="fw-bold">Instant QR Verification</h5>
+        <p class="text-muted mb-0">Scan a QR code or type a certificate number to get an instant, clear verification result — no login required.</p>
+      </div></div>
+    </div>
+    <div class="col-md-4">
+      <div class="ct-card h-100"><div class="card-body">
+        <div class="ct-feature-icon">🚨</div>
+        <h5 class="fw-bold">Fraud &amp; Anomaly Alerts</h5>
+        <p class="text-muted mb-0">Hash mismatches, invalid signatures and suspicious lookups automatically raise severity-graded fraud alerts.</p>
+      </div></div>
+    </div>
+    <div class="col-md-4">
+      <div class="ct-card h-100"><div class="card-body">
+        <div class="ct-feature-icon">📊</div>
+        <h5 class="fw-bold">Live Monitoring Dashboard</h5>
+        <p class="text-muted mb-0">Officers and admins see real-time analytics — issuance trends, verification outcomes, and department statistics.</p>
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<section class="container pb-5">
+  <div class="ct-card"><div class="card-body p-4">
+    <h4 class="fw-bold mb-3">Certificate lifecycle at a glance</h4>
+    <ol class="ct-timeline">
+      <li class="done"><strong>Application Submitted</strong><div class="text-muted small">Citizen applies online with supporting documents</div></li>
+      <li class="done"><strong>Document Verification</strong><div class="text-muted small">Officer reviews uploaded documents</div></li>
+      <li class="done"><strong>Officer Review &amp; Decision</strong><div class="text-muted small">Approved or rejected with a reason</div></li>
+      <li class="active"><strong>Certificate Generated, Signed &amp; QR-Issued</strong><div class="text-muted small">Hashed, digitally signed, QR bound, PDF generated</div></li>
+      <li><strong>Publicly Verifiable</strong><div class="text-muted small">Anyone can verify instantly via QR or certificate number</div></li>
+    </ol>
+  </div></div>
+</section>
+
+{% endblock %}
+{% block extra_scripts %}
+<script>
+function ctCountUp(el, target, duration = 1200) {
+  const start = 0;
+  const startTime = performance.now();
+  function tick(now) {
+    const progress = Math.min((now - startTime) / duration, 1);
+    const value = Math.floor(start + (target - start) * (1 - Math.pow(1 - progress, 3)));
+    el.textContent = value.toLocaleString();
+    if (progress < 1) requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+}
+
+(async function loadPublicStats() {
+  try {
+    const s = await ctFetch("/api/public-stats");
+    ctCountUp(document.getElementById("statTotalCerts"), s.total_certificates);
+    ctCountUp(document.getElementById("statTotalVerifications"), s.total_verification_requests);
+    ctCountUp(document.getElementById("statCertTypes"), s.certificate_types);
+    ctCountUp(document.getElementById("statDepartments"), s.departments);
+  } catch (err) {
+    /* landing page still works fine without live stats */
+  }
+})();
+</script>
+{% endblock %}

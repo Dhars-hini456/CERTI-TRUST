@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Verify a Certificate{% endblock %}
+{% block content %}
+<div class="container py-5">
+  <div class="text-center mb-4">
+    <h2 class="ct-section-title">Public Certificate Verification</h2>
+    <p class="ct-section-sub">No login required. Scan a QR code or enter the certificate details below.</p>
+  </div>
+
+  <div class="row justify-content-center">
+    <div class="col-lg-6">
+      <div class="ct-card"><div class="card-body p-4">
+        <form action="{{ url_for('verify.verify_lookup') }}" method="POST">
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Certificate Number</label>
+            <input type="text" name="certificate_number" class="form-control" placeholder="e.g. INC-2026-000123">
+          </div>
+          <div class="text-center text-muted my-2 small">— OR —</div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Verification Token</label>
+            <input type="text" name="token" class="form-control" placeholder="Paste the token from the QR URL">
+          </div>
+          <button type="submit" class="btn btn-ct-primary w-100 py-2">Verify Certificate</button>
+        </form>
+      </div></div>
+      <p class="text-center small text-muted mt-3">Scanning a certificate's QR code takes you straight to its result — this form is for manual entry only.</p>
+    </div>
+  </div>
+</div>
+{% endblock %}

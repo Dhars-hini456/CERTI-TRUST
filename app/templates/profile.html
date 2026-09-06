@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Profile{% endblock %}
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-6">
+      <div class="ct-card"><div class="card-body p-4 text-center">
+        <div class="ct-feature-icon mx-auto" style="width:72px;height:72px;font-size:2rem;">👤</div>
+        <h4 class="fw-bold mt-3 mb-0">{{ session.get('full_name') }}</h4>
+        <span class="badge ct-badge-role text-uppercase mt-2" style="background:#eef3ff; color:var(--ct-navy);">{{ session.get('role') }}</span>
+        <hr>
+        <p class="text-muted small mb-0">Notifications and account settings for this demo account. In a production deployment, this page would show verified identity attributes, linked departments, and security settings.</p>
+      </div></div>
+
+      <div class="ct-card mt-4"><div class="card-body p-4">
+        <h6 class="fw-bold mb-3">🔔 Recent Notifications</h6>
+        <div id="notificationsList"><p class="text-muted">Loading...</p></div>
+      </div></div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block extra_scripts %}
+<script>
+async function loadNotifications() {
+  const el = document.getElementById("notificationsList");
+  try {
+    const items = await ctFetch("/api/notifications");
+    if (items.length === 0) { el.innerHTML = ctEmptyState("No notifications yet.", "🔔"); return; }
+    el.innerHTML = items.map(n => `
+      <div class="d-flex justify-content-between align-items-start border-bottom py-2">
+        <div>
+          <p class="fw-semibold mb-0">${n.title}</p>
+          <p class="small text-muted mb-0">${n.message}</p>
+        </div>
+        <span class="small text-muted">${n.created_at}</span>
+      </div>`).join("");
+  } catch (err) {
+    el.innerHTML = `<p class="text-danger">${err.message}</p>`;
+  }
+}
+loadNotifications();
+</script>
+{% endblock %}

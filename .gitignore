@@ -1,0 +1,15 @@
+venv/
+__pycache__/
+*.pyc
+*.db
+.env
+instance/
+uploads/*
+!uploads/.gitkeep
+generated_certificates/*
+!generated_certificates/.gitkeep
+app/static/qr/*
+!app/static/qr/.gitkeep
+config/dev_private_key.pem
+config/dev_public_key.pem
+.pytest_cache/

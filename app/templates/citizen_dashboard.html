@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% block title %}Citizen Dashboard{% endblock %}
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+    <div>
+      <h3 class="ct-section-title mb-0">Welcome, {{ session.get('full_name') }} 👋</h3>
+      <p class="ct-section-sub mb-0">Apply for certificates and track your applications in real time.</p>
+    </div>
+    <button class="btn btn-ct-primary" data-bs-toggle="modal" data-bs-target="#applyModal">+ New Application</button>
+  </div>
+
+  <ul class="nav nav-pills mb-4" id="citizenTabs">
+    <li class="nav-item"><button class="nav-link active" data-tab="applications">My Applications</button></li>
+    <li class="nav-item"><button class="nav-link" data-tab="certificates">My Certificates</button></li>
+  </ul>
+
+  <div id="tab-applications">
+    <div class="ct-card"><div class="card-body">
+      <div class="table-responsive">
+        <table class="table ct-table align-middle">
+          <thead><tr>
+            <th>Application #</th><th>Certificate Type</th><th>Status</th><th>Submitted</th><th></th>
+          </tr></thead>
+          <tbody id="applicationsBody"><tr><td colspan="5" class="text-center py-4">Loading...</td></tr></tbody>
+        </table>
+      </div>
+    </div></div>
+  </div>
+
+  <div id="tab-certificates" class="d-none">
+    <div class="row g-3" id="certificatesGrid">
+      <div class="col-12 text-center py-4">Loading...</div>
+    </div>
+  </div>
+</div>
+
+<!-- Apply Modal -->
+<div class="modal fade" id="applyModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold">New Certificate Application</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form id="applyForm">
+        <div class="modal-body">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">Certificate Type</label>
+              <select class="form-select" id="certificate_type_id" required>
+                <option value="">Select type...</option>
+                {% for ct in cert_types %}
+                <option value="{{ ct.id }}">{{ ct.name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Applicant Full Name</label>
+              <input type="text" class="form-control" id="applicant_name" required value="{{ session.get('full_name') }}">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Date of Birth</label>
+              <input type="date" class="form-control" id="date_of_birth">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Purpose</label>
+              <input type="text" class="form-control" id="purpose" placeholder="e.g. College admission">
+            </div>
+            <div class="col-12">
+              <label class="form-label">Address</label>
+              <textarea class="form-control" id="address" rows="2"></textarea>
+            </div>
+            <div class="col-12">
+              <label class="form-label">Supporting Document (optional, PDF/PNG/JPG)</label>
+              <input type="file" class="form-control" id="documentFile" accept=".pdf,.png,.jpg,.jpeg">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-ct-primary">Submit Application</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- QR Preview modal -->
+<div class="modal fade" id="qrPreviewModal" tabindex="-1">
+  <div class="modal-dialog modal-sm modal-dialog-centered">
+    <div class="modal-content text-center">
+      <div class="modal-header"><h6 class="modal-title fw-bold" id="qrPreviewLabel">Certificate QR</h6><button class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body">
+        <div class="qr-preview-box"><img id="qrPreviewImg" src="" alt="QR Code" style="width:200px;height:200px;"></div>
+        <p class="small text-muted mt-3 mb-0">Scan with any QR reader, or open the link below directly.</p>
+        <a id="qrPreviewLink" href="#" target="_blank" class="btn btn-ct-primary btn-sm mt-2">Open Verification Page</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/citizen.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}Register{% endblock %}
+{% block content %}
+<div class="ct-auth-wrap">
+  <div class="ct-auth-card">
+    <div class="brand-strip">
+      <h4 class="mb-0 fw-bold">🛡️ CertiTrust</h4>
+      <p class="mb-0 small opacity-75">Create your citizen account</p>
+    </div>
+    <div class="p-4">
+      <form id="registerForm">
+        <div class="mb-3">
+          <label class="form-label">Full Name</label>
+          <input type="text" class="form-control" id="full_name" required minlength="3" placeholder="e.g. Ananya Sharma">
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Email address</label>
+          <input type="email" class="form-control" id="email" required placeholder="you@example.com">
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Phone</label>
+          <input type="text" class="form-control" id="phone" placeholder="10-digit mobile number">
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Password</label>
+          <input type="password" class="form-control" id="password" required minlength="6" placeholder="At least 6 characters">
+        </div>
+        <button type="submit" class="btn btn-ct-primary w-100 py-2">Create Account</button>
+      </form>
+      <p class="text-center mt-3 mb-0">Already registered? <a href="{{ url_for('pages.login_page') }}">Log in</a></p>
+      <p class="small text-muted mt-2 mb-0">Officer, verifier and admin accounts are provisioned by an administrator, not through self-registration.</p>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.getElementById("registerForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const payload = {
+    full_name: document.getElementById("full_name").value.trim(),
+    email: document.getElementById("email").value.trim(),
+    phone: document.getElementById("phone").value.trim(),
+    password: document.getElementById("password").value,
+    role: "citizen",
+  };
+  try {
+    await ctFetch("/api/auth/register", { method: "POST", body: JSON.stringify(payload) });
+    ctToast("Registration successful! Please log in.", "success");
+    setTimeout(() => (window.location.href = "/login"), 800);
+  } catch (err) {
+    ctToast(err.message, "danger");
+  }
+});
+</script>
+{% endblock %}

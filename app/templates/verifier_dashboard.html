@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Verifier Dashboard{% endblock %}
+{% block content %}
+<div class="container py-4">
+  <div class="mb-4">
+    <h3 class="ct-section-title mb-0">Verifier Portal</h3>
+    <p class="ct-section-sub mb-0">Scan a QR code or enter a certificate number to verify instantly.</p>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-lg-5">
+      <div class="ct-card verify-scanner-card"><div class="card-body">
+        <h6 class="fw-bold mb-3">📷 Scan QR Code</h6>
+        <div id="qr-reader"></div>
+        <button class="btn btn-ct-primary w-100 mt-3" id="startScanBtn">Start Camera Scan</button>
+        <p class="small text-muted mt-2 mb-0">Camera access is required. If unavailable, use manual entry.</p>
+      </div></div>
+    </div>
+
+    <div class="col-lg-7">
+      <div class="ct-card"><div class="card-body">
+        <h6 class="fw-bold mb-3">🔢 Manual Verification</h6>
+        <ul class="nav nav-tabs mb-3" id="manualTabs">
+          <li class="nav-item"><button class="nav-link active" data-mtab="number">Certificate Number</button></li>
+          <li class="nav-item"><button class="nav-link" data-mtab="token">Verification Token</button></li>
+        </ul>
+        <div id="mtab-number">
+          <label class="form-label">Certificate Number</label>
+          <div class="input-group">
+            <input type="text" class="form-control" id="certNumberInput" placeholder="e.g. INC-2026-000123">
+            <button class="btn btn-ct-primary" onclick="verifyByNumber()">Verify</button>
+          </div>
+        </div>
+        <div id="mtab-token" class="d-none">
+          <label class="form-label">Verification Token</label>
+          <div class="input-group">
+            <input type="text" class="form-control" id="tokenInput" placeholder="Paste secure token from QR URL">
+            <button class="btn btn-ct-primary" onclick="verifyByToken()">Verify</button>
+          </div>
+        </div>
+      </div></div>
+
+      <div id="resultContainer" class="mt-4"></div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script src="{{ url_for('static', filename='js/verifier.js') }}"></script>
+{% endblock %}
