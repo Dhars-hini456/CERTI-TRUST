@@ -136,6 +136,22 @@ That's it — no XAMPP or MySQL required. `DATABASE_URL` in `.env` defaults to a
 ### 6.4 macOS / Linux
 Replace `venv\Scripts\activate` with `source venv/bin/activate`, and `copy` with `cp`. Everything else is identical.
 
+### 6.5 Deploy to the web — Render (free, optional)
+
+The easiest way to put the hackathon demo online is [Render](https://render.com). This repo ships a `Procfile` and `render.yaml`, so deployment is mostly clicking:
+
+1. Make sure this project is pushed to GitHub (`git push origin main`).
+2. Go to **https://render.com** → sign up/log in → **New** → **Blueprint** → connect your GitHub account → select the **CERTI-TRUST** repo.
+3. Render auto-detects `render.yaml` — click **Apply / Create Resources** (it provisions a free web service named `certitrust`).
+4. Wait for the first build + deploy (~2–4 min). Open your live app at **https://certitrust.onrender.com**.
+5. Seed the demo data once: open the Render dashboard → your service → **Shell** tab and run:
+   ```bash
+   python scripts/seed_data.py
+   ```
+
+`render.yaml` already sets `FLASK_SECRET_KEY` (generated#`, `FLASK_DEBUG=False` and `BASE_VERIFY_URL=https://certitrust.onrender.com/verify` automatically. If you deploy manually (New → Web Service) instead, set those three in **Environment** yourself.
+
+> ⚠️ **Render free tier uses a temporary disk** — SQLite DB, uploads/, QR files and generated PDFs reset on each new deploy. Simply re-run `python scripts/seed_data.py` via the Shell tab after redeploys. For live data, attach a managed PostgreSQL/MySQL service and change `DATABASE_URL`.
 ---
 
 ## 7. Environment Variables

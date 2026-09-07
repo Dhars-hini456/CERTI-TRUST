@@ -1,0 +1,17 @@
+# Render Blueprint for CertiTrust (https://render.com#.
+# One-click deploy: Render -> New -> Blueprint -> connect this GitHub repo -> Apply.
+services:
+  - type: web
+    name: certitrust
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn wsgi:application --bind 0.0.0.0:$PORT --timeout 120 --access-logfile - --error-logfile -
+    healthCheckPath: /
+    envVars:
+      - key: FLASK_SECRET_KEY
+        generateValue: true
+      - key: FLASK_DEBUG
+        value: "False"
+      - key: BASE_VERIFY_URL
+        value: https://certitrust.onrender.com/verify
