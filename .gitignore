@@ -3,6 +3,7 @@ __pycache__/
 *.pyc
 *.db
 *.log
+cloudflared.exe
 .env
 instance/
 uploads/*
