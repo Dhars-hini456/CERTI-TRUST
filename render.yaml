@@ -23,5 +23,7 @@ services:
         fromDatabase:
           name: certitrust-db
           property: connectionString
-      - key: BASE_VERIFY_URL
-        value: https://certitrust.onrender.com/verify
+      # BASE_VERIFY_URL is NOT hardcoded on purpose: Render automatically
+      # injects RENDER_EXTERNAL_URL (= your real service URL), which the app
+      # falls back to, so QR codes always point at the correct live URL even
+      # if Render assigns a different service name.

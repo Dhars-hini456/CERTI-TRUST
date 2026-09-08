@@ -45,8 +45,8 @@ def create_app(test_config=None):
             os.getenv("DATABASE_URL", "sqlite:///certitrust.db")
         ),
         SQLALCHEMY_TRACK_MODIFICATIONS=False,
-        BASE_VERIFY_URL=os.getenv(
-            "BASE_VERIFY_URL", "http://localhost:5000/verify"
+        BASE_VERIFY_URL=os.getenv("BASE_VERIFY_URL") or os.getenv(
+            "RENDER_EXTERNAL_URL", "http://localhost:5000/verify"
         ),
         UPLOAD_FOLDER=os.path.abspath(
             os.path.join(app.root_path, "..", "uploads")
