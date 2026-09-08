@@ -142,16 +142,20 @@ The easiest way to put the hackathon demo online is [Render](https://render.com)
 
 1. Make sure this project is pushed to GitHub (`git push origin main`).
 2. Go to **https://render.com** → sign up/log in → **New** → **Blueprint** → connect your GitHub account → select the **CERTI-TRUST** repo.
-3. Render auto-detects `render.yaml` — click **Apply / Create Resources** (it provisions a free web service named `certitrust`).
-4. Wait for the first build + deploy (~2–4 min). Open your live app at **https://certitrust.onrender.com**.
-5. Seed the demo data once: open the Render dashboard → your service → **Shell** tab and run:
+3. Render auto-detects `render.yaml` — click **Apply / Create Resources**. It provisions:
+   - a free **web service** named `certitrust`,
+   - a free **managed PostgreSQL database** named `certitrust-db` (a copy of `certitrust`),
+   - and automatically injects `DATABASE_URL`, `FLASK_SECRET_KEY` (randomly generated), `FLASK_DEBUG=False` and `BASE_VERIFY_URL=https://certitrust.onrender.com/verify`.
+4. Wait for the first build + deploy (~2–4 min). Open your live app at **https://certitrust.onrender.com** — tables are created automatically on first start.
+5. Seed the demo data once (accounts, sample applications and certificates): open the Render dashboard → your service → **Shell** tab and run:
    ```bash
    python scripts/seed_data.py
    ```
+   The demo data lives in the managed PostgreSQL database, so it survives redeploys.
 
-`render.yaml` already sets `FLASK_SECRET_KEY` (generated#`, `FLASK_DEBUG=False` and `BASE_VERIFY_URL=https://certitrust.onrender.com/verify` automatically. If you deploy manually (New → Web Service) instead, set those three in **Environment** yourself.
-
-> ⚠️ **Render free tier uses a temporary disk** — SQLite DB, uploads/, QR files and generated PDFs reset on each new deploy. Simply re-run `python scripts/seed_data.py` via the Shell tab after redeploys. For live data, attach a managed PostgreSQL/MySQL service and change `DATABASE_URL`.
+> ⚠️ **Render free tier also uses a temporary disk.** `uploads/`, QR images and generated PDFs are stored on the server disk and reset on redeploy; the certificates/records themselves persist in PostgreSQL. For a live demo that generates files frequently, consider attaching external object/file storage.
+>
+> If you deploy **manually** (New → Web Service) instead of via the Blueprint, create a free PostgreSQL database in the Render dashboard yourself, then set `DATABASE_URL` (use its **Internal** connection string — the app accepts both `postgres://` and `postgresql://`), plus `FLASK_SECRET_KEY`, `FLASK_DEBUG=False` and `BASE_VERIFY_URL=https://<your-app>.onrender.com/verify` in **Environment**.
 ---
 
 ## 7. Environment Variables

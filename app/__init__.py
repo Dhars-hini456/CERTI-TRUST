@@ -7,6 +7,7 @@ Run with:
 The Flask development server will start on http://localhost:5000
 """
 import os
+import re
 
 from dotenv import load_dotenv
 
@@ -18,6 +19,21 @@ from app.extensions import db
 load_dotenv()
 
 
+def normalize_database_url(url):
+    """Make Render's internal ``postgres://`` URL acceptable to SQLAlchemy.
+
+    Render exposes the managed-database connection string as
+    ``postgres://user:pass@host:port/db`` (no driver). SQLAlchemy requires a
+    dialect, so translate it to the psycopg 3 dialect. Plain PostgreSQL URLs
+    without an explicit driver are handled the same way.
+    """
+    if not url:
+        return url
+    if url.startswith("postgres://") or url.startswith("postgresql://"):
+        return re.sub(r"^postgres(ql)?://", "postgresql+psycopg://", url)
+    return url
+
+
 def create_app(test_config=None):
     """Create and configure the Flask application instance."""
     app = Flask(__name__)
@@ -25,8 +41,8 @@ def create_app(test_config=None):
     # ---- Default configuration ---------------------------------------------
     app.config.from_mapping(
         SECRET_KEY=os.getenv("FLASK_SECRET_KEY", "change-this-dev-secret-key"),
-        SQLALCHEMY_DATABASE_URI=os.getenv(
-            "DATABASE_URL", "sqlite:///certitrust.db"
+        SQLALCHEMY_DATABASE_URI=normalize_database_url(
+            os.getenv("DATABASE_URL", "sqlite:///certitrust.db")
         ),
         SQLALCHEMY_TRACK_MODIFICATIONS=False,
         BASE_VERIFY_URL=os.getenv(

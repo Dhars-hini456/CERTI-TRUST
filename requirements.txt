@@ -30,6 +30,7 @@ packaging==26.3
 pandas==3.0.5
 pillow==12.3.0
 pluggy==1.6.0
+psycopg[binary]==3.3.5
 pycparser==3.0
 pydantic==2.13.5
 pydantic_core==2.46.5
