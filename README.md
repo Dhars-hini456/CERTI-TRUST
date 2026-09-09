@@ -6,6 +6,15 @@
 
 ---
 
+### 🌐 Live Website & Deployment URLs
+
+- **Live Website URL**: [https://kirk-portraits-peripheral-heath.trycloudflare.com](https://kirk-portraits-peripheral-heath.trycloudflare.com)
+- **GitHub Repository**: [https://github.com/Dhars-hini456/CERTI-TRUST](https://github.com/Dhars-hini456/CERTI-TRUST)
+- **GitHub Pages**: [https://dhars-hini456.github.io/CERTI-TRUST/](https://dhars-hini456.github.io/CERTI-TRUST/)
+- **One-Click Cloud Deploy (Render)**: [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/Dhars-hini456/CERTI-TRUST)
+
+---
+
 ## 1. Project Overview
 
 CertiTrust is a full-stack web platform that lets a government department **issue, monitor and verify** certificates (income, caste, residence, birth, death, disability, legal heir, and more) with a tamper-evident, QR-based verification flow.
