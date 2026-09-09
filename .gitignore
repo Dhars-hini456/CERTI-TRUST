@@ -1,4 +1,5 @@
 venv/
+.venv/
 __pycache__/
 *.pyc
 *.db
@@ -14,4 +15,6 @@ app/static/qr/*
 !app/static/qr/.gitkeep
 config/dev_private_key.pem
 config/dev_public_key.pem
+!config/.gitkeep
 .pytest_cache/
+

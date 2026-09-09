@@ -112,7 +112,13 @@ def test_login_success_and_failure(client):
 
     good = client.post("/api/auth/login", json={"email": "login@test.local", "password": "Demo@1234"})
     assert good.status_code == 200
-    assert good.get_json()["role"] == "citizen"
+    body = good.get_json()
+    assert body["role"] == "citizen"
+    assert body["redirect"] == "/citizen-dashboard"
+
+    # Verify the redirect page exists and is accessible
+    page_resp = client.get(body["redirect"])
+    assert page_resp.status_code == 200
 
     bad = client.post("/api/auth/login", json={"email": "login@test.local", "password": "wrong-password"})
     assert bad.status_code == 401
@@ -124,7 +130,7 @@ def test_login_success_and_failure(client):
 
 def test_issue_certificate_creates_valid_record(app, sample_cert_type, sample_officer):
     with app.app_context():
-        ct = CertificateType.query.get(sample_cert_type)
+        ct = db.session.get(CertificateType, sample_cert_type)
         cert = issue_certificate(
             certificate_type=ct,
             applicant_name="Test Applicant",
@@ -146,7 +152,7 @@ def test_issue_certificate_creates_valid_record(app, sample_cert_type, sample_of
 
 def test_valid_verification_returns_original(app, sample_cert_type, sample_officer):
     with app.app_context():
-        ct = CertificateType.query.get(sample_cert_type)
+        ct = db.session.get(CertificateType, sample_cert_type)
         cert = issue_certificate(
             certificate_type=ct, applicant_name="Test Applicant", applicant_id="CIT-00002",
             date_of_birth="01-01-1995", address="Addr", issued_by="Revenue Department",
@@ -166,7 +172,7 @@ def test_verification_of_unknown_certificate_returns_not_found(app):
 
 def test_tampered_certificate_is_detected(app, sample_cert_type, sample_officer):
     with app.app_context():
-        ct = CertificateType.query.get(sample_cert_type)
+        ct = db.session.get(CertificateType, sample_cert_type)
         cert = issue_certificate(
             certificate_type=ct, applicant_name="Original Name", applicant_id="CIT-00003",
             date_of_birth="01-01-1995", address="Addr", issued_by="Revenue Department",
@@ -185,7 +191,7 @@ def test_tampered_certificate_is_detected(app, sample_cert_type, sample_officer)
 
 def test_invalid_signature_is_detected(app, sample_cert_type, sample_officer):
     with app.app_context():
-        ct = CertificateType.query.get(sample_cert_type)
+        ct = db.session.get(CertificateType, sample_cert_type)
         cert = issue_certificate(
             certificate_type=ct, applicant_name="Sig Test", applicant_id="CIT-00004",
             date_of_birth="01-01-1995", address="Addr", issued_by="Revenue Department",
@@ -202,7 +208,7 @@ def test_invalid_signature_is_detected(app, sample_cert_type, sample_officer):
 
 def test_reissued_certificate_is_verified_reissue_not_fake(app, sample_cert_type, sample_officer):
     with app.app_context():
-        ct = CertificateType.query.get(sample_cert_type)
+        ct = db.session.get(CertificateType, sample_cert_type)
         original = issue_certificate(
             certificate_type=ct, applicant_name="Reissue Test", applicant_id="CIT-00005",
             date_of_birth="01-01-1995", address="Addr", issued_by="Revenue Department",
@@ -217,13 +223,13 @@ def test_reissued_certificate_is_verified_reissue_not_fake(app, sample_cert_type
         assert outcome["result"] == RESULT_VERIFIED_REISSUE
 
         # The original certificate should now be marked superseded, not fake.
-        refreshed_original = Certificate.query.get(original.id)
+        refreshed_original = db.session.get(Certificate, original.id)
         assert refreshed_original.status == "SUPERSEDED"
 
 
 def test_revoked_certificate_is_detected(app, sample_cert_type, sample_officer):
     with app.app_context():
-        ct = CertificateType.query.get(sample_cert_type)
+        ct = db.session.get(CertificateType, sample_cert_type)
         cert = issue_certificate(
             certificate_type=ct, applicant_name="Revoke Test", applicant_id="CIT-00006",
             date_of_birth="01-01-1995", address="Addr", issued_by="Revenue Department",
@@ -237,7 +243,7 @@ def test_revoked_certificate_is_detected(app, sample_cert_type, sample_officer):
 
 def test_expired_certificate_is_detected(app, sample_cert_type, sample_officer):
     with app.app_context():
-        ct = CertificateType.query.get(sample_cert_type)
+        ct = db.session.get(CertificateType, sample_cert_type)
         cert = issue_certificate(
             certificate_type=ct, applicant_name="Expiry Test", applicant_id="CIT-00007",
             date_of_birth="01-01-1995", address="Addr", issued_by="Revenue Department",
@@ -279,3 +285,38 @@ def test_public_stats_endpoint_requires_no_login(client):
     body = resp.get_json()
     assert "total_certificates" in body
     assert "total_verification_requests" in body
+
+
+def test_dashboard_route_aliases_accessible(client):
+    # Register and login as citizen
+    client.post("/api/auth/register", json={"full_name": "Route Test", "email": "routes@test.local", "password": "Demo@1234"})
+    client.post("/api/auth/login", json={"email": "routes@test.local", "password": "Demo@1234"})
+
+    # Check both hyphenated and slash routes
+    res1 = client.get("/citizen-dashboard")
+    assert res1.status_code == 200
+    res2 = client.get("/citizen/dashboard")
+    assert res2.status_code == 200
+
+    # /dashboard general route redirects to citizen dashboard
+    res3 = client.get("/dashboard", follow_redirects=True)
+    assert res3.status_code == 200
+
+
+def test_analytics_and_dashboard_stats(client):
+    client.post("/api/auth/register", json={"full_name": "Analytics User", "email": "analytics@test.local", "password": "Demo@1234"})
+    client.post("/api/auth/login", json={"email": "analytics@test.local", "password": "Demo@1234"})
+
+    dash_resp = client.get("/api/dashboard")
+    assert dash_resp.status_code == 200
+    dash_data = dash_resp.get_json()
+    assert "total_certificates" in dash_data
+    assert "issued_today" in dash_data
+
+    analytics_resp = client.get("/api/analytics")
+    assert analytics_resp.status_code == 200
+    analytics_data = analytics_resp.get_json()
+    assert "certificates_by_month" in analytics_data
+    assert "verification_results" in analytics_data
+    assert "suspicious_trend" in analytics_data
+

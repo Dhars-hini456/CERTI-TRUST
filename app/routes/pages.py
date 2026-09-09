@@ -40,6 +40,7 @@ def dashboard_redirect():
 
 
 @pages_bp.route("/citizen-dashboard")
+@pages_bp.route("/citizen/dashboard")
 @role_required("citizen")
 def citizen_dashboard():
     cert_types = CertificateType.query.filter_by(is_active=True).all()
@@ -47,18 +48,21 @@ def citizen_dashboard():
 
 
 @pages_bp.route("/officer-dashboard")
+@pages_bp.route("/officer/dashboard")
 @role_required("officer", "admin")
 def officer_dashboard():
     return render_template("officer_dashboard.html")
 
 
 @pages_bp.route("/verifier-dashboard")
+@pages_bp.route("/verifier/dashboard")
 @role_required("verifier", "admin")
 def verifier_dashboard():
     return render_template("verifier_dashboard.html")
 
 
 @pages_bp.route("/admin-dashboard")
+@pages_bp.route("/admin/dashboard")
 @role_required("admin")
 def admin_dashboard():
     return render_template("admin_dashboard.html")

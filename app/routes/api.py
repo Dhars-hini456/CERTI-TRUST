@@ -78,9 +78,12 @@ def _serialize_certificate(c):
 @login_required
 def dashboard_stats():
     today = datetime.utcnow().date()
+    today_start = datetime(today.year, today.month, today.day)
+    tomorrow_start = today_start + timedelta(days=1)
     total_certificates = Certificate.query.count()
     issued_today = Certificate.query.filter(
-        func.date(Certificate.created_at) == today.isoformat()
+        Certificate.created_at >= today_start,
+        Certificate.created_at < tomorrow_start,
     ).count()
     verified = Certificate.query.filter_by(status="ACTIVE").count()
     pending_applications = Application.query.filter(
@@ -113,12 +116,24 @@ def analytics():
     # Certificates issued by month (last 6 months)
     months = []
     counts = []
+    now = datetime.utcnow()
     for i in range(5, -1, -1):
-        month_dt = datetime.utcnow() - timedelta(days=30 * i)
-        label = month_dt.strftime("%b %Y")
+        year = now.year
+        month = now.month - i
+        while month <= 0:
+            month += 12
+            year -= 1
+        month_start = datetime(year, month, 1)
+        if month == 12:
+            next_month_start = datetime(year + 1, 1, 1)
+        else:
+            next_month_start = datetime(year, month + 1, 1)
+
+        label = month_start.strftime("%b %Y")
         months.append(label)
         count = Certificate.query.filter(
-            func.strftime("%Y-%m", Certificate.created_at) == month_dt.strftime("%Y-%m")
+            Certificate.created_at >= month_start,
+            Certificate.created_at < next_month_start,
         ).count()
         counts.append(count)
 
@@ -152,9 +167,14 @@ def analytics():
     alert_counts = []
     for i in range(6, -1, -1):
         day = (datetime.utcnow() - timedelta(days=i)).date()
+        day_start = datetime(day.year, day.month, day.day)
+        day_end = day_start + timedelta(days=1)
         alert_days.append(day.strftime("%d %b"))
         alert_counts.append(
-            FraudAlert.query.filter(func.date(FraudAlert.detected_at) == day.isoformat()).count()
+            FraudAlert.query.filter(
+                FraudAlert.detected_at >= day_start,
+                FraudAlert.detected_at < day_end,
+            ).count()
         )
 
     # Application status distribution

@@ -85,10 +85,10 @@ def login():
     _log_action(user.id, "LOGIN", "User logged in")
 
     redirect_map = {
-        "citizen": "/citizen/dashboard",
-        "officer": "/officer/dashboard",
-        "verifier": "/verifier/dashboard",
-        "admin": "/admin/dashboard",
+        "citizen": "/citizen-dashboard",
+        "officer": "/officer-dashboard",
+        "verifier": "/verifier-dashboard",
+        "admin": "/admin-dashboard",
     }
 
     return jsonify(

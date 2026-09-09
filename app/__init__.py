@@ -38,6 +38,11 @@ def create_app(test_config=None):
     """Create and configure the Flask application instance."""
     app = Flask(__name__)
 
+    base_verify_url = os.getenv("BASE_VERIFY_URL")
+    if not base_verify_url:
+        render_url = os.getenv("RENDER_EXTERNAL_URL")
+        base_verify_url = f"{render_url.rstrip('/')}/verify" if render_url else "http://localhost:5000/verify"
+
     # ---- Default configuration ---------------------------------------------
     app.config.from_mapping(
         SECRET_KEY=os.getenv("FLASK_SECRET_KEY", "change-this-dev-secret-key"),
@@ -45,9 +50,7 @@ def create_app(test_config=None):
             os.getenv("DATABASE_URL", "sqlite:///certitrust.db")
         ),
         SQLALCHEMY_TRACK_MODIFICATIONS=False,
-        BASE_VERIFY_URL=os.getenv("BASE_VERIFY_URL") or os.getenv(
-            "RENDER_EXTERNAL_URL", "http://localhost:5000/verify"
-        ),
+        BASE_VERIFY_URL=base_verify_url,
         UPLOAD_FOLDER=os.path.abspath(
             os.path.join(app.root_path, "..", "uploads")
         ),
