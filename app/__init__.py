@@ -101,8 +101,52 @@ def create_app(test_config=None):
     def not_found(error):
         return render_template("errors/404.html"), 404
 
-    # ---- Create tables on first run ---------------------------------------------
+    # ---- Create tables and initial data on first run -----------------------------
     with app.app_context():
         db.create_all()
+        if not app.config.get("TESTING"):
+            _init_defaults()
 
     return app
+
+
+def _init_defaults():
+    """Seed essential departments, certificate types, and demo accounts if empty."""
+    from werkzeug.security import generate_password_hash
+    from app.models import Department, CertificateType, User
+
+    demo_password = os.getenv("DEMO_PASSWORD", "Demo@1234")
+
+    if Department.query.first() is None:
+        departments = [
+            Department(name="Revenue Department", code="REV", description="Income, caste and nativity certificates"),
+            Department(name="Registrar of Births & Deaths", code="RBD", description="Birth and death certificates"),
+            Department(name="Social Welfare Department", code="SWD", description="Disability and legal heir certificates"),
+            Department(name="General Administration Department", code="GAD", description="Residence and misc certificates"),
+        ]
+        db.session.add_all(departments)
+        db.session.commit()
+
+    if CertificateType.query.first() is None:
+        cert_types = [
+            CertificateType(name="Caste / Community Certificate", code="CAS", department="Revenue Department", validity_days=1825, description="Certifies community for reservation benefits"),
+            CertificateType(name="Income Certificate", code="INC", department="Revenue Department", validity_days=365, description="Certifies annual family income"),
+            CertificateType(name="Nativity Certificate", code="NAT", department="Revenue Department", validity_days=3650, description="Certifies native residency status"),
+            CertificateType(name="Residence Certificate", code="RES", department="General Administration Department", validity_days=1825, description="Certifies current residential address"),
+            CertificateType(name="Birth Certificate", code="BIR", department="Registrar of Births & Deaths", validity_days=36500, description="Certifies date and place of birth"),
+            CertificateType(name="Death Certificate", code="DEA", department="Registrar of Births & Deaths", validity_days=36500, description="Certifies date and cause of death"),
+            CertificateType(name="Legal Heir Certificate", code="LEG", department="Social Welfare Department", validity_days=3650, description="Certifies legal heirs of a deceased person"),
+            CertificateType(name="Disability Certificate", code="DIS", department="Social Welfare Department", validity_days=1825, description="Certifies percentage and type of disability"),
+        ]
+        db.session.add_all(cert_types)
+        db.session.commit()
+
+    if User.query.first() is None:
+        demo_users = [
+            User(full_name="System Administrator", email="admin@demo.local", password_hash=generate_password_hash(demo_password), role="admin", department="Administration"),
+            User(full_name="Officer Kavitha Ramesh", email="officer@demo.local", password_hash=generate_password_hash(demo_password), role="officer", department="Revenue Department"),
+            User(full_name="Verifier - City College", email="verifier@demo.local", password_hash=generate_password_hash(demo_password), role="verifier", department="City College Admissions"),
+            User(full_name="Demo Citizen", email="citizen@demo.local", password_hash=generate_password_hash(demo_password), role="citizen"),
+        ]
+        db.session.add_all(demo_users)
+        db.session.commit()
