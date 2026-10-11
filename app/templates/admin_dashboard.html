@@ -19,6 +19,7 @@
     <li class="nav-item"><button class="nav-link" data-tab="cert-types">Certificate Types</button></li>
     <li class="nav-item"><button class="nav-link" data-tab="departments">Departments</button></li>
     <li class="nav-item"><button class="nav-link" data-tab="certificates">All Certificates</button></li>
+    <li class="nav-item"><button class="nav-link" data-tab="mcp">MCP</button></li>
   </ul>
 
   <div id="tab-users">
@@ -72,6 +73,79 @@
       </table></div>
       <div class="ct-pagination" id="adminCertPagination"></div>
     </div></div>
+  </div>
+
+  <div id="tab-mcp" class="d-none">
+    <section class="ct-card mb-3" aria-labelledby="mcpOverviewTitle">
+      <div class="card-body">
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+          <div>
+            <h4 class="fw-bold mb-1" id="mcpOverviewTitle">Model Context Protocol</h4>
+            <p class="text-muted mb-0">CertiTrust tools for connected AI clients and developer environments.</p>
+          </div>
+          <span class="badge rounded-pill text-bg-success px-3 py-2">Configured · stdio</span>
+        </div>
+        <hr>
+        <div class="row g-3">
+          <div class="col-md-4"><span class="small text-muted d-block">Client configuration</span><strong>mcp_config.json</strong></div>
+          <div class="col-md-4"><span class="small text-muted d-block">Available transports</span><strong>stdio, Streamable HTTP</strong></div>
+          <div class="col-md-4"><span class="small text-muted d-block">Server entry point</span><code>mcp_server.py</code></div>
+        </div>
+        <p class="small text-muted border-top pt-3 mt-3 mb-0">Configured means the server and client settings are present. Live client connections are managed by the AI client and are not monitored by this website.</p>
+      </div>
+    </section>
+
+    <section class="ct-card mb-3" aria-labelledby="mcpToolsTitle">
+      <div class="card-body">
+        <h5 class="fw-bold mb-3" id="mcpToolsTitle">Available tools</h5>
+        <div class="table-responsive"><table class="table ct-table align-middle mb-0">
+          <thead><tr><th>Tool</th><th>Capability</th></tr></thead>
+          <tbody>
+            <tr><td><code>verify_certificate_record</code></td><td>Verify a certificate by number or QR token.</td></tr>
+            <tr><td><code>get_certificate_details</code></td><td>Retrieve certificate details and verification count.</td></tr>
+            <tr><td><code>get_certificate_version_history</code></td><td>Trace original certificates and official reissues.</td></tr>
+            <tr><td><code>search_certificates</code></td><td>Search by applicant, certificate number, department, or status.</td></tr>
+            <tr><td><code>list_certificate_types</code></td><td>List active certificate types.</td></tr>
+            <tr><td><code>list_departments</code></td><td>List issuing departments.</td></tr>
+            <tr><td><code>get_dashboard_analytics</code></td><td>Read platform and security metrics.</td></tr>
+            <tr><td><code>get_department_analytics</code></td><td>Summarize certificates, pending applications, and unresolved alerts by department.</td></tr>
+            <tr><td><code>list_pending_applications</code></td><td>View applications awaiting review.</td></tr>
+            <tr><td><code>review_application</code></td><td>Approve, reject, or mark an application under review.</td></tr>
+            <tr><td><code>list_fraud_alerts</code></td><td>Review fraud and anomaly alerts.</td></tr>
+            <tr><td><code>resolve_fraud_alert</code></td><td>Record an alert resolution.</td></tr>
+            <tr><td><code>get_verification_audit_trail</code></td><td>Inspect certificate verification history.</td></tr>
+            <tr><td><code>list_recent_verifications</code></td><td>Review recent verification outcomes without network identifiers.</td></tr>
+            <tr><td><code>revoke_certificate_record</code></td><td>Revoke a certificate and record the reason.</td></tr>
+          </tbody>
+        </table></div>
+      </div>
+    </section>
+
+    <div class="row g-3">
+      <div class="col-lg-6">
+        <section class="ct-card h-100" aria-labelledby="mcpResourcesTitle">
+          <div class="card-body">
+            <h5 class="fw-bold mb-3" id="mcpResourcesTitle">Resources</h5>
+            <ul class="list-unstyled mb-0">
+              <li class="mb-2"><code>certitrust://stats</code><span class="text-muted"> · System metrics</span></li>
+              <li class="mb-2"><code>certitrust://certificate-types</code><span class="text-muted"> · Certificate catalog</span></li>
+              <li><code>certitrust://unresolved-alerts</code><span class="text-muted"> · Open fraud alerts</span></li>
+            </ul>
+          </div>
+        </section>
+      </div>
+      <div class="col-lg-6">
+        <section class="ct-card h-100" aria-labelledby="mcpPromptsTitle">
+          <div class="card-body">
+            <h5 class="fw-bold mb-3" id="mcpPromptsTitle">Prompts</h5>
+            <ul class="list-unstyled mb-0">
+              <li class="mb-2"><code>audit_certificate</code><span class="text-muted"> · Certificate integrity review</span></li>
+              <li><code>fraud_investigation_brief</code><span class="text-muted"> · Unresolved alert triage</span></li>
+            </ul>
+          </div>
+        </section>
+      </div>
+    </div>
   </div>
 </div>
 

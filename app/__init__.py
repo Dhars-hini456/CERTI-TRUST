@@ -149,4 +149,4 @@ def _init_defaults():
             User(full_name="Demo Citizen", email="citizen@demo.local", password_hash=generate_password_hash(demo_password), role="citizen"),
         ]
         db.session.add_all(demo_users)
-        db.session.commit()
+        db.session.commit()

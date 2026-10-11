@@ -2,7 +2,7 @@ document.querySelectorAll("#adminTabs .nav-link").forEach((btn) => {
   btn.addEventListener("click", () => {
     document.querySelectorAll("#adminTabs .nav-link").forEach((b) => b.classList.remove("active"));
     btn.classList.add("active");
-    ["users", "cert-types", "departments", "certificates"].forEach((t) =>
+    ["users", "cert-types", "departments", "certificates", "mcp"].forEach((t) =>
       document.getElementById("tab-" + t).classList.add("d-none")
     );
     document.getElementById("tab-" + btn.dataset.tab).classList.remove("d-none");

@@ -220,3 +220,46 @@ Errors are returned as:
 { "error": "Human-readable message" }
 ```
 with an appropriate HTTP status code (`400`, `401`, `403`, `404`, `409`, `413`).
+
+---
+
+## Model Context Protocol (MCP) Server
+
+CertiTrust includes a built-in **Model Context Protocol (MCP)** server (`mcp_server.py`) powered by the official Python MCP SDK (`mcp>=2.3.0`). This exposes verification, certificate queries, fraud monitoring, and admin workflows to AI assistants like Antigravity, Claude Desktop, and Cursor.
+
+### Running the MCP Server
+- **Stdio transport (default for AI assistants & IDEs)**:
+  ```bash
+  python mcp_server.py --transport stdio
+  ```
+- **Streamable HTTP transport**:
+  ```bash
+  python mcp_server.py --transport streamable-http --host 127.0.0.1 --port 8000 --path /mcp
+  ```
+
+### Exposed MCP Tools
+1. `verify_certificate_record(identifier)`: Cryptographically verifies a certificate by QR token or certificate number.
+2. `get_certificate_details(certificate_number)`: Fetches full certificate metadata, version history, hash, signature, and verification counts.
+3. `get_certificate_version_history(certificate_number)`: Traces the original certificate and its official reissue chain.
+4. `search_certificates(query, status, limit)`: Searches certificates by applicant name, certificate number, or department.
+5. `list_certificate_types()`: Lists all active certificate types and issuing departments.
+6. `list_departments()`: Lists registered government departments.
+7. `get_dashboard_analytics()`: Real-time analytics, issuance counts, active, revoked, expired, and fraud metrics.
+8. `get_department_analytics(department)`: Aggregates certificate statuses, pending applications, and unresolved alerts for a department.
+9. `list_pending_applications(department, limit)`: Lists pending citizen applications awaiting review.
+10. `review_application(application_number, action, remarks, officer_name)`: Review application (`APPROVE`, `REJECT`, `UNDER_REVIEW`). Automatically issues certificate on approval.
+11. `list_fraud_alerts(unresolved_only, limit)`: Lists detected fraud and anomaly alerts.
+12. `resolve_fraud_alert(alert_id, resolution_notes, resolved_by)`: Marks an alert resolved with audit notes.
+13. `get_verification_audit_trail(certificate_number, limit)`: Retrieves verification audit logs.
+14. `list_recent_verifications(result_filter, limit)`: Lists recent outcomes without IP addresses or user agents.
+15. `revoke_certificate_record(certificate_number, reason, revoked_by)`: Revokes a certificate and generates high-severity audit alert.
+
+### MCP Resources
+- `certitrust://stats`: Real-time system metrics (JSON).
+- `certitrust://certificate-types`: Registered certificate types (JSON).
+- `certitrust://unresolved-alerts`: Unresolved security alerts (JSON).
+
+### MCP Prompts
+- `audit_certificate(certificate_number)`: Forensic auditing prompt for certificate authenticity.
+- `fraud_investigation_brief()`: Security triage prompt for unresolved fraud alerts.
+

@@ -53,6 +53,7 @@ Crucially, **an official duplicate is not automatically treated as fake.** Reiss
 - **One-click CSV export** for applications, certificates, users, verification logs and fraud alerts
 - **In-app QR preview modal** — view and open any certificate's QR without leaving the page
 - **Animated live stats** on the public landing page (certificates issued, verifications run, etc.)
+- **Model Context Protocol (MCP) server** (`mcp_server.py`) — exposes certificate verification, fraud monitoring, search, and admin functions to AI agents and IDEs
 - **Automated tests** (pytest)
 
 ---
@@ -63,6 +64,7 @@ Crucially, **an official duplicate is not automatically treated as fake.** Reiss
 |---|---|
 | Frontend | HTML5, CSS3, JavaScript, Bootstrap 5, Chart.js, html5-qrcode |
 | Backend | Python 3, Flask, Flask-SQLAlchemy |
+| AI / MCP | Model Context Protocol (`mcp` 2.x SDK), Stdio & Streamable HTTP transports |
 | Database | SQLite by default (zero config) — MySQL supported via XAMPP |
 | Security | Werkzeug password hashing, SHA-256, RSA-PSS digital signatures, role-based access control |
 | PDF | ReportLab |
@@ -254,18 +256,70 @@ POST /verify/lookup          (manual form lookup)
 
 ---
 
-## 11. Testing
+## 11. Model Context Protocol (MCP) Server
+
+CertiTrust implements an official **Model Context Protocol (MCP)** server (`mcp_server.py`) using the `mcp>=2.3.0` Python SDK. This empowers AI assistants (Google Antigravity, Claude Desktop, Cursor, etc.) to securely query, verify, audit, and manage certificates directly through structured tools, resources, and prompts.
+
+### Running the MCP Server
+```powershell
+# 1. Stdio transport (default, used by local IDEs and AI pair programmers)
+python mcp_server.py --transport stdio
+
+# 2. Streamable HTTP transport (remote / network access)
+python mcp_server.py --transport streamable-http --host 127.0.0.1 --port 8000 --path /mcp
+```
+
+### Available MCP Tools
+- `verify_certificate_record(identifier)` — Full cryptographic verification (status, SHA-256 hash match, RSA signature verification, reissue check) by QR token or certificate number.
+- `get_certificate_details(certificate_number)` — Complete certificate metadata, dates, issuer, version, and verification statistics.
+- `get_certificate_version_history(certificate_number)` — Trace the original certificate and official reissue chain.
+- `search_certificates(query, status, limit)` — Search registry by applicant name, certificate number, or department.
+- `list_certificate_types()` — List registered certificate categories and validity periods.
+- `list_departments()` — List all government departments.
+- `get_dashboard_analytics()` — Real-time issuance counts, active, reissued, revoked, expired, and fraud metrics.
+- `get_department_analytics(department)` — Aggregate certificate statuses, pending applications, and unresolved alerts by department.
+- `list_pending_applications(department, limit)` — Retrieve citizen applications awaiting officer review.
+- `review_application(application_number, action, remarks)` — Approve/reject applications; automatically issues tamper-evident certificate upon approval.
+- `list_fraud_alerts(unresolved_only, limit)` — Retrieve security anomalies and tampering attempts.
+- `resolve_fraud_alert(alert_id, resolution_notes)` — Mark fraud alerts as investigated/resolved.
+- `get_verification_audit_trail(certificate_number, limit)` — Retrieve verification audit logs.
+- `list_recent_verifications(result_filter, limit)` — Review recent outcomes without IP addresses or user agents.
+- `revoke_certificate_record(certificate_number, reason)` — Revoke a certificate and log an audit alert.
+
+### MCP Resources & Prompts
+- **Resources**: `certitrust://stats`, `certitrust://certificate-types`, `certitrust://unresolved-alerts`
+- **Prompts**: `audit_certificate` (deep forensic check), `fraud_investigation_brief` (alert triage)
+
+### Configuration for AI Assistants
+A `mcp_config.json` is provided in the repository root:
+```json
+{
+  "mcpServers": {
+    "certitrust": {
+      "command": "python",
+      "args": ["mcp_server.py", "--transport", "stdio"],
+      "env": {
+        "PYTHONUNBUFFERED": "1"
+      }
+    }
+  }
+}
+```
+
+---
+
+## 12. Testing
 
 ```powershell
 pip install -r requirements.txt
 pytest -v
 ```
 
-Tests spin up an isolated temporary SQLite database and temporary file folders, so they never touch your real local data. Covered: registration, login, certificate issuance, QR generation, valid verification, unknown certificate, tamper detection, invalid-signature detection, official reissue (not treated as fake), revocation, expiry, and role-based access control.
+Tests spin up an isolated temporary SQLite database and temporary file folders, so they never touch your real local data. Covered: registration, login, certificate issuance, QR generation, valid verification, unknown certificate, tamper detection, invalid-signature detection, official reissue (not treated as fake), revocation, expiry, role-based access control, and complete MCP server tools/resources/prompts.
 
 ---
 
-## 12. Hackathon Demo Script (5 minutes)
+## 13. Hackathon Demo Script (5 minutes)
 
 1. **Citizen**: log in as `citizen@demo.local`, submit a new certificate application.
 2. **Officer**: log in as `officer@demo.local`, approve the application, then click **Issue Certificate** (this hashes, signs, QR-codes and PDF-generates the certificate automatically).
@@ -276,7 +330,7 @@ Tests spin up an isolated temporary SQLite database and temporary file folders, 
 
 ---
 
-## 13. Troubleshooting
+## 14. Troubleshooting
 
 | Problem | Fix |
 |---|---|
@@ -289,19 +343,20 @@ Tests spin up an isolated temporary SQLite database and temporary file folders, 
 
 ---
 
-## 14. Limitations (by design, for this demo)
+## 15. Limitations (by design, for this demo)
 
 - Document-upload verification reads only the certificate number you type — no OCR or AI-based forgery detection is claimed or implemented (the architecture leaves room for this to be added later).
 - Digital signature keys are generated locally on first run (`config/dev_private_key.pem` / `dev_public_key.pem`) purely for demonstration — **a real government deployment would use managed PKI / an HSM**, never keys sitting on a web server's disk.
 - Email/SMS notifications are not wired to a real provider; only in-app notifications are implemented.
 - No integration with Aadhaar, DigiLocker, or any other real government system is implemented or claimed.
 
-## 15. Future Enhancements
+## 16. Future Enhancements
 
 OCR-based document verification, AI-assisted forgery detection, managed PKI/HSM signing, Aadhaar/identity integration, blockchain-backed audit trail, DigiLocker integration, SMS/email gateways, a native mobile app, and multi-state/multi-department deployment.
 
 ---
 
-## 16. License
+## 17. License
 
 See `LICENSE`. Provided as-is for hackathon/educational demonstration purposes.
+
